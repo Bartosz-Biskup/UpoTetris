@@ -5,6 +5,8 @@ import pygame
 from typing import Literal, Optional
 from pathlib import Path
 from dataclasses import dataclass
+from functools import lru_cache
+
 
 BASE_DIR = Path(__file__).parent.parent
 
@@ -77,13 +79,18 @@ class Label(UiElement):
         self._color = color
         self.set_text(text)
 
+    @lru_cache(maxsize=1)
+    def _get_surface(self, text: str, color: tuple[int, int, int]) -> Surface:
+        return self._font.render(text, True, color)
+
     def set_text(self, text: str):
         self.text = text
-        self._surface = self._font.render(text, True, self._color)
 
-    def get_size(self): return self._surface.get_size()
+    def get_size(self):
+        return self._get_surface(self.text, self._color).get_size()
 
-    def draw(self, surface, pos): surface.blit(self._surface, pos)
+    def draw(self, surface, pos):
+        surface.blit(self._get_surface(self.text, self._color), pos)
 
 
 class BlinkingLabel(Label):
@@ -104,14 +111,14 @@ class BlinkingLabel(Label):
 
     def blink(self) -> None:
         self._blink_timer = pygame.time.get_ticks()
-        self._surface = self._font.render(self.text, True, self._blink_color)
+        self._color = self._blink_color
 
     def draw(self, surface: Surface, pos: tuple[int, int]) -> None:
         if self._blink_timer is not None:
             elapsed = pygame.time.get_ticks() - self._blink_timer
             if elapsed >= self._blink_duration_ms:
                 self._blink_timer = None
-                self.set_text(self.text)
+                self._color = self._default_color
 
         super().draw(surface, pos)
 

@@ -125,6 +125,7 @@ class TetrisGame:
         while self._is_valid(candidate):
             self.current_piece = candidate
             candidate: Piece = self.current_piece.move_down()
+        self.tick()
 
     def start(self) -> None:
         if self.game_status != 'Not started':
