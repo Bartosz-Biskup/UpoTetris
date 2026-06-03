@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from ui_elements import UiElement, Image
+from ui_elements import Image
 import pygame
 from pygame import Surface
 from ui_elements import UiElement
 
 
-@dataclass
+@dataclass(frozen=True)
 class BlinkConfig:
     on_ms: int = 500
     off_ms: int = 250

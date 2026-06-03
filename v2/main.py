@@ -6,11 +6,16 @@ from piece_preview import PiecePreview
 from cursorMenu import Menu
 from assets import DEFAULT_ASSETS_PATH
 import sys
+from sounds import SoundEffectPlayer
+from ui_elements import BlinkingLabel
+from soundtracks import ScoreManager, Soundtrack, JsonManager
 
-from v2.ui_elements import BlinkingLabel
 
 SCREEN_DIMENSIONS: tuple[int, int] = (720, 480)
 screen_w, screen_h = SCREEN_DIMENSIONS
+
+
+JSON_FILE_MANAGER: JsonManager = JsonManager('soundtracks.json')
 
 
 class UiScreen(ABC):
@@ -152,6 +157,10 @@ class TetrisGameScreen(UiScreen):
         self._piece_preview: PiecePreview | None = None
 
         self._prev_score, self.score = 0, 0
+        self._blinking_threshold: int = 100
+
+        self.sx_player: SoundEffectPlayer = SoundEffectPlayer()
+        self._score_manager: ScoreManager = ScoreManager(JSON_FILE_MANAGER)
 
     def on_enter(self) -> None:
         self.controller.start()
@@ -166,8 +175,8 @@ class TetrisGameScreen(UiScreen):
         self._layout.add_element(self._time_label, (560, 180), 'bottom_left')
 
     def on_exit(self) -> None:
-        # save scores later
-        ...
+        self.sx_player.play_ack()
+        self._score_manager.add_score(self.controller.score_keeper.get_score())
 
     def tick(self, events: list[pygame.Event]) -> None:
         if self.game_finished:
@@ -177,9 +186,12 @@ class TetrisGameScreen(UiScreen):
         self.controller.tick()
 
         self._prev_score, self.score = self.score, self.controller.score_keeper.get_score()
-        if self._prev_score != self.score:
+
+        if self.score - self._prev_score >= self._blinking_threshold:
             self._score_label.blink()
-        self._score_label.set_text(str(self.controller.score_keeper.get_score()).zfill(2))
+            self.sx_player.play_faah()
+
+        self._score_label.set_text(str(self.score).zfill(2))
 
         if self.controller.is_lost:
             self.game_finished = True
@@ -189,7 +201,7 @@ class TetrisGameScreen(UiScreen):
 
     def next_screen(self) -> 'UiScreen | None':
         if self.game_finished:
-            return GameOverScreen(self.controller.score_keeper.score,
+            return GameOverScreen(self.controller.score_keeper.get_score(),
                                   self._time_label.time_elapsed,
                                   self.level)
 

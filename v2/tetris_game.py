@@ -19,6 +19,14 @@ class TetrisGameSettings:
     # death_line: int
 
 
+@dataclass(frozen=True)
+class GameState:
+    current_piece: Piece
+    next_piece: Piece
+    lines_cleared: int
+    pieces_dropped: int
+
+
 class TetrisGame:
     def __init__(self,
                  settings: TetrisGameSettings) -> None:
@@ -32,6 +40,16 @@ class TetrisGame:
                                                                       self.settings.grid_size[0])
         self.current_piece: Piece = self.piece_factory.spawn()
         self.next_piece: Piece = self.piece_factory.spawn()
+
+        self._total_lines_cleared: int = 0
+        self._total_pieces_dropped: int = 0
+
+    @property
+    def snapshot(self) -> GameState:
+        return GameState(self.current_piece,
+                         self.next_piece,
+                         self._total_lines_cleared,
+                         self._total_pieces_dropped)
 
     def _is_valid(self, piece: Piece) -> bool:
         for row_idx, row in enumerate(piece.current_shape):
@@ -83,9 +101,11 @@ class TetrisGame:
         if not self._is_valid(self.current_piece):
             self.game_status = 'Lost'
 
-    def tick(self) -> int:
+        self._total_pieces_dropped += 1
+
+    def tick(self) -> None:
         if self.game_status == 'Lost':
-            return 0
+            return
 
         candidate: Piece = self.current_piece.move_down()
         if self._is_valid(candidate):
@@ -97,7 +117,7 @@ class TetrisGame:
             number_cleared = self._clear_lines()
             self._advance()
 
-        return number_cleared
+        self._total_lines_cleared += number_cleared
 
     def move_left(self) -> None:
         if self.game_status != 'Running':

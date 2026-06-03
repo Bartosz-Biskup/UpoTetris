@@ -1,0 +1,103 @@
+{
+  "songs": [
+    {
+      "author": "Kogucik, RaphCooker",
+      "name": "Polski OsamaSon",
+      "path": "blueface.wav",
+      "price": 5000,
+      "owned": false,
+      "rarity": "Rare"
+    },
+    {
+      "author": "Unknown",
+      "name": "Rizz",
+      "path": "rizz.wav",
+      "price": 0,
+      "owned": false,
+      "rarity": "Common"
+    },
+    {
+      "author": "Unknown",
+      "name": "Yeah Boi Remix",
+      "path": "yeah_boi.wav",
+      "price": 10000,
+      "owned": false,
+      "rarity": "Epic"
+    },
+    {
+      "author": "Smokepurpp",
+      "name": "7AM In Broward",
+      "path": "7am.wav",
+      "price": 0,
+      "owned": true,
+      "rarity": "Common"
+    },
+    {
+      "name": "Camelot",
+      "author": "NLE Choppa",
+      "path": "camelot.wav",
+      "price": 5000,
+      "owned": true,
+      "rarity": "Common"
+    },
+    {
+      "name": "FDO - First Day Out",
+      "author": "Pooh Shiesty",
+      "path": "fdo.wav",
+      "price": 25000,
+      "owned": true,
+      "rarity": "Legendary"
+    },
+    {
+      "author": "Yeasc",
+      "name": "Poppin",
+      "path": "jeasc.wav",
+      "price": 10000,
+      "owned": false,
+      "rarity": "Epic"
+    },
+    {
+      "author": "PauseBoi Cartka",
+      "name": "Kuleczki",
+      "path": "kuleczki.wav",
+      "price": 15000,
+      "owned": false,
+      "rarity": "Epic"
+    },
+    {
+      "author": "Mlody Korden",
+      "name": "Lord Dripiez",
+      "path": "lord_drip.wav",
+      "price": 5000,
+      "owned": false,
+      "rarity": "Rare"
+    },
+    {
+      "author": "Jakub Polak, SpottemGottem",
+      "name": "Beat Box (ft. Jakub Polak)",
+      "path": "polak_freestyle.wav",
+      "price": 15000,
+      "owned": false,
+      "rarity": "Epic"
+    },
+    {
+      "name": "Racks On Racks",
+      "author": "Lil Pump",
+      "path": "racks_on_racks.wav",
+      "price": 10000,
+      "owned": true,
+      "rarity": "Epic"
+    },
+    {
+      "author": "Krol Von",
+      "name": "Zabralem ja do O",
+      "path": "zabralem_ja_do_o.wav",
+      "price": 15000,
+      "owned": false,
+      "rarity": "Legendary"
+    }
+  ],
+  "default-soundtrack": "Camelot",
+  "score": 315,
+  "max-score": 315
+}

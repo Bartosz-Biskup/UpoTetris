@@ -3,20 +3,25 @@ from tetris_game import TetrisGame
 from v2.tetris_drawer import TetrisDrawer, DEFAULT_SETTINGS
 from tetris_levels import levels
 from ui_elements import UiElement
-from typing import Callable, Any
+from random import randint
 
 
 class ScoreKeeper:
-    def __init__(self) -> None:
-        self.score: int = 0
+    def __init__(self, game: TetrisGame) -> None:
+        self.score: float = 0
 
-    def notify_lines_cleared(self, lines: int) -> None:
-        if lines <= 0:
-            return
+        self._game = game
+        self._lines_cleared: int = 0
+
+    def tick(self) -> None:
+        total_lines_cleared: int = self._game.snapshot.lines_cleared
+        self._lines_cleared, lines = total_lines_cleared, total_lines_cleared - self._lines_cleared
+
         self.score += round(100 * lines * (1 + (lines - 1) * 0.5))
+        self.score += randint(0, 100) / 100
 
     def get_score(self) -> int:
-        return self.score
+        return int(self.score)
 
     def reset(self) -> None:
         self.score = 0
@@ -28,7 +33,7 @@ class TetrisController(UiElement):
         self.tetris_drawer = TetrisDrawer(self.tetris_game, DEFAULT_SETTINGS)
         self._tick: int = 0
 
-        self.score_keeper: ScoreKeeper = ScoreKeeper()
+        self.score_keeper: ScoreKeeper = ScoreKeeper(self.tetris_game)
 
     def start(self) -> None:
         self.tetris_game.start()
@@ -49,8 +54,8 @@ class TetrisController(UiElement):
         self._tick += 1
         if self._tick % self.tetris_game.settings.tick_every != 0:
             return
-        lines_cleared: int = self.tetris_game.tick()
-        self.score_keeper.notify_lines_cleared(lines_cleared)
+        self.tetris_game.tick()
+        self.score_keeper.tick()
 
     def draw(self, surface: pygame.Surface, pos: tuple[int, int]) -> None:
         self.tetris_drawer.draw(surface, pos)
