@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from tetris_game import TetrisGrid
 import pygame
 from pygame import Surface
 from colors import Color
@@ -16,9 +16,9 @@ class TetrisDrawerSettings:
     empty_cell_color: Color
 
 
-DEFAULT_SETTINGS: TetrisDrawerSettings = TetrisDrawerSettings(cell_size_px=28,
+DEFAULT_SETTINGS: TetrisDrawerSettings = TetrisDrawerSettings(cell_size_px=25,
                                                               cell_offset=3,
-                                                              hide_first=2,
+                                                              hide_first=0,
                                                               grid_bg_color=(0, 0, 0),
                                                               empty_cell_color=(100, 100, 100))
 
@@ -31,8 +31,8 @@ class TetrisDrawer(UiElement):
         self.settings = settings
 
     def get_size(self) -> tuple[int, int]:
-        visible_rows = self.tetris_game.grid.size_y - self.settings.hide_first
-        visible_cols = self.tetris_game.grid.size_x
+        visible_rows = self.tetris_game._grid.size_y - self.settings.hide_first
+        visible_cols = self.tetris_game._grid.size_x
 
         width = visible_cols * self.settings.cell_size_px + (visible_cols - 1) * self.settings.cell_offset
         height = visible_rows * self.settings.cell_size_px + (visible_rows - 1) * self.settings.cell_offset
@@ -40,10 +40,11 @@ class TetrisDrawer(UiElement):
         return width, height
 
     def draw(self, surface: Surface, pos: tuple[int, int]) -> None:
-        for y in range(self.settings.hide_first, self.tetris_game.grid.size_y):
-            for x in range(self.tetris_game.grid.size_x):
+        grid: TetrisGrid = self.tetris_game.snapshot.grid
+        for y in range(self.settings.hide_first, grid.size_y):
+            for x in range(grid.size_x):
                 cell_pos = self._calculate_cell_position(x, y, pos)
-                color = self.tetris_game.grid.get_cell((x, y))
+                color = grid.get_cell((x, y))
                 self._draw_cell(surface, cell_pos, color)
 
         for row_idx, row in enumerate(self.tetris_game.current_piece.current_shape):

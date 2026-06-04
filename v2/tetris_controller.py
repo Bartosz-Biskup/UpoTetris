@@ -1,7 +1,7 @@
 import pygame
 from tetris_game import TetrisGame
 from v2.tetris_drawer import TetrisDrawer, DEFAULT_SETTINGS
-from tetris_levels import levels
+from tetris_levels import levels, TetrisGameSettings
 from ui_elements import UiElement
 from random import randint
 
@@ -29,11 +29,15 @@ class ScoreKeeper:
 
 class TetrisController(UiElement):
     def __init__(self, level: str) -> None:
-        self.tetris_game = TetrisGame(levels.get(level))
-        self.tetris_drawer = TetrisDrawer(self.tetris_game, DEFAULT_SETTINGS)
-        self._tick: int = 0
+        tetris_level_settings: TetrisGameSettings | None = levels.get(level)
+        if tetris_level_settings is None:
+            raise ValueError('Invalid tetris level')
 
-        self.score_keeper: ScoreKeeper = ScoreKeeper(self.tetris_game)
+        self.tetris_game = TetrisGame(tetris_level_settings)
+        self._tetris_drawer = TetrisDrawer(self.tetris_game, DEFAULT_SETTINGS)
+        self._score_keeper: ScoreKeeper = ScoreKeeper(self.tetris_game)
+
+        self._tick_count: int = 0
 
     def start(self) -> None:
         self.tetris_game.start()
@@ -51,21 +55,23 @@ class TetrisController(UiElement):
                     self.tetris_game.hard_drop()
 
     def tick(self) -> None:
-        self._tick += 1
-        if self._tick % self.tetris_game.settings.tick_every != 0:
+        self._tick_count += 1
+        if self._tick_count % self.tetris_game._settings.tick_every != 0:
             return
+
         self.tetris_game.tick()
-        self.score_keeper.tick()
+        self._score_keeper.tick()
 
     def draw(self, surface: pygame.Surface, pos: tuple[int, int]) -> None:
-        self.tetris_drawer.draw(surface, pos)
+        self._tetris_drawer.draw(surface, pos)
 
     def get_size(self) -> tuple[int, int]:
-        x, y = self.tetris_game.settings.grid_size
-        cell_size = self.tetris_drawer.settings.cell_size_px
-        offset: int = self.tetris_drawer.settings.cell_offset
-        return x * (cell_size + offset), (y - self.tetris_drawer.settings.hide_first) * (cell_size + offset)
+        return self._tetris_drawer.get_size()
 
     @property
     def is_lost(self) -> bool:
-        return self.tetris_game.game_status == 'Lost'
+        return self.tetris_game._game_status == 'Lost'
+
+    @property
+    def score(self) -> int:
+        return self._score_keeper.get_score()

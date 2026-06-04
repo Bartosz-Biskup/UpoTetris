@@ -66,7 +66,7 @@ class ScoreManager:
 
         data = self._db.load()
         data[self._SCORE_KEY] += amount
-        self._set_max_score(data)
+        self._set_max_score(data, amount)
         self._db.save(data)
         return data[self._SCORE_KEY]
 
@@ -79,9 +79,9 @@ class ScoreManager:
         self._db.save(data)
         return data[self._SCORE_KEY]
 
-    def _set_max_score(self, data: dict) -> None:
-        if data[self._SCORE_KEY] > data[self._MAX_SCORE_KEY]:
-            data[self._MAX_SCORE_KEY] = data[self._SCORE_KEY]
+    def _set_max_score(self, data: dict, score: int) -> None:
+        if score > data[self._MAX_SCORE_KEY]:
+            data[self._MAX_SCORE_KEY] = score
 
 
 class SoundtrackManager:

@@ -99,8 +99,9 @@ class MainMenuScreen(UiScreen):
     def __init__(self) -> None:
         self._layout: Layout = Layout()
         self._menu: Menu | None = None
-        self._next: UiScreen | None = None
         self._logo_img: Image = Image(DEFAULT_ASSETS_PATH / "logo.png", scale=1)
+
+        self._next: UiScreen | None = None
 
     def on_enter(self) -> None:
         items = [
@@ -111,8 +112,8 @@ class MainMenuScreen(UiScreen):
 
         self._menu = Menu(items=items, cursor_offset_y=-8)
         self._layout = Layout()
-        self._layout.add_element(self._menu, (400, 320), "center")
-        self._layout.add_element(self._logo_img, (360, 110), "center")
+        self._layout.add_element(self._menu, (screen_w // 2 + 30, 320), "center")
+        self._layout.add_element(self._logo_img, (screen_w // 2 + 10, 110), "center")
 
     def on_exit(self) -> None:
         ...
@@ -162,11 +163,15 @@ class TetrisGameScreen(UiScreen):
         self.sx_player: SoundEffectPlayer = SoundEffectPlayer()
         self._score_manager: ScoreManager = ScoreManager(JSON_FILE_MANAGER)
 
+    @staticmethod
+    def _format_score(score: int) -> str:
+        return str(score).zfill(2)
+
     def on_enter(self) -> None:
         self.controller.start()
 
         self._score_label: BlinkingLabel = BlinkingLabel(text='00', font_size=20)
-        self._piece_preview: PiecePreview = PiecePreview((200, 150), lambda: self.controller.tetris_game.next_piece)
+        self._piece_preview: PiecePreview = PiecePreview((200, 150), self.controller.tetris_game)
         self._time_label: TimeLabel = TimeLabel(font_size=20)
 
         self._layout.add_element(self.controller, (10, 10), 'top_left')
@@ -176,7 +181,7 @@ class TetrisGameScreen(UiScreen):
 
     def on_exit(self) -> None:
         self.sx_player.play_ack()
-        self._score_manager.add_score(self.controller.score_keeper.get_score())
+        self._score_manager.add_score(self.controller.score)
 
     def tick(self, events: list[pygame.Event]) -> None:
         if self.game_finished:
@@ -185,13 +190,13 @@ class TetrisGameScreen(UiScreen):
         self.controller.handle_events(events)
         self.controller.tick()
 
-        self._prev_score, self.score = self.score, self.controller.score_keeper.get_score()
+        self._prev_score, self.score = self.score, self.controller.score
 
         if self.score - self._prev_score >= self._blinking_threshold:
             self._score_label.blink()
             self.sx_player.play_faah()
 
-        self._score_label.set_text(str(self.score).zfill(2))
+        self._score_label.set_text(self._format_score(self.score))
 
         if self.controller.is_lost:
             self.game_finished = True
@@ -201,7 +206,7 @@ class TetrisGameScreen(UiScreen):
 
     def next_screen(self) -> 'UiScreen | None':
         if self.game_finished:
-            return GameOverScreen(self.controller.score_keeper.get_score(),
+            return GameOverScreen(self.score,
                                   self._time_label.time_elapsed,
                                   self.level)
 

@@ -3,6 +3,7 @@ from ui_elements import Image
 import pygame
 from pygame import Surface
 from ui_elements import UiElement
+from colors import Color
 
 
 @dataclass(frozen=True)
@@ -16,7 +17,7 @@ class Menu(UiElement):
         self,
         items: list[Image],
         cursor_size: tuple[int, int] = (12, 40),
-        cursor_color: tuple[int, int, int] = (255, 255, 255),
+        cursor_color: Color = (255, 255, 255),
         cursor_blink: BlinkConfig | None = None,
         item_gap: int = -30,
         cursor_gap: int = 16,
@@ -76,7 +77,7 @@ class Caret(UiElement):
         size: tuple[int, int],
         shift_amount: int,
         item_count: int,
-        color: tuple[int, int, int] = (255, 255, 255),
+        color: Color = (255, 255, 255),
         blink: BlinkConfig | None = None,
     ) -> None:
         self._width, self._height = size

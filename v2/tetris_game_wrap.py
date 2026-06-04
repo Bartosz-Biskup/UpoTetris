@@ -26,7 +26,7 @@ def tetris_game_pygame(screen: pygame.Surface,
     game.start()
     running: bool = True
     current_tick: int = 0
-    while game.game_status != 'Lost' and running:
+    while game._game_status != 'Lost' and running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
