@@ -60,7 +60,7 @@ class TetrisGame:
 
     @property
     def snapshot(self) -> GameState:
-        return self._get_game_snapshot()
+        return self._game_snapshot
 
     def _is_valid(self, piece: Piece) -> bool:
         for row_idx, row in enumerate(piece.current_shape):
@@ -164,4 +164,3 @@ class TetrisGame:
         if self._game_status != 'Not started':
             raise ValueError('The game has already started')
         self._game_status = 'Running'
-

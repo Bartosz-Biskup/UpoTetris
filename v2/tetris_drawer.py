@@ -31,8 +31,10 @@ class TetrisDrawer(UiElement):
         self.settings = settings
 
     def get_size(self) -> tuple[int, int]:
-        visible_rows = self.tetris_game._grid.size_y - self.settings.hide_first
-        visible_cols = self.tetris_game._grid.size_x
+        grid: TetrisGrid = self.tetris_game.snapshot.grid
+
+        visible_rows = grid.size_y - self.settings.hide_first
+        visible_cols = grid.size_x
 
         width = visible_cols * self.settings.cell_size_px + (visible_cols - 1) * self.settings.cell_offset
         height = visible_rows * self.settings.cell_size_px + (visible_rows - 1) * self.settings.cell_offset

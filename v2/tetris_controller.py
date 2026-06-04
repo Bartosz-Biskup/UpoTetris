@@ -1,5 +1,5 @@
 import pygame
-from tetris_game import TetrisGame
+from tetris_game import TetrisGame, GameState
 from v2.tetris_drawer import TetrisDrawer, DEFAULT_SETTINGS
 from tetris_levels import levels, TetrisGameSettings
 from ui_elements import UiElement
@@ -8,8 +8,7 @@ from random import randint
 
 class ScoreKeeper:
     def __init__(self, game: TetrisGame) -> None:
-        self.score: float = 0
-
+        self._prev_score, self.score = 0, 0
         self._game = game
         self._lines_cleared: int = 0
 
@@ -22,6 +21,14 @@ class ScoreKeeper:
 
     def get_score(self) -> int:
         return int(self.score)
+
+    def get_score_change(self) -> int:
+        """
+        returns score change since last call
+        """
+        difference: int = self.score - self._prev_score
+        self._prev_score = self.score
+        return difference
 
     def reset(self) -> None:
         self.score = 0
@@ -70,8 +77,16 @@ class TetrisController(UiElement):
 
     @property
     def is_lost(self) -> bool:
-        return self.tetris_game._game_status == 'Lost'
+        return self.tetris_game.snapshot.game_status == 'Lost'
 
     @property
     def score(self) -> int:
         return self._score_keeper.get_score()
+
+    @property
+    def tetris_snapshot(self) -> GameState:
+        return self.tetris_game.snapshot
+
+    @property
+    def score_change(self) -> int:
+        return self._score_keeper.get_score_change()
