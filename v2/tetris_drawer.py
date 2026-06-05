@@ -31,7 +31,7 @@ class TetrisDrawer(UiElement):
         self.settings = settings
 
     def get_size(self) -> tuple[int, int]:
-        grid: TetrisGrid = self.tetris_game.snapshot.grid
+        grid: TetrisGrid = self.tetris_game.get_grid()
 
         visible_rows = grid.size_y - self.settings.hide_first
         visible_cols = grid.size_x
@@ -42,22 +42,23 @@ class TetrisDrawer(UiElement):
         return width, height
 
     def draw(self, surface: Surface, pos: tuple[int, int]) -> None:
-        grid: TetrisGrid = self.tetris_game.snapshot.grid
+        grid: TetrisGrid = self.tetris_game.get_grid()
         for y in range(self.settings.hide_first, grid.size_y):
             for x in range(grid.size_x):
                 cell_pos = self._calculate_cell_position(x, y, pos)
                 color = grid.get_cell((x, y))
                 self._draw_cell(surface, cell_pos, color)
 
-        for row_idx, row in enumerate(self.tetris_game.current_piece.current_shape):
+        current_piece = self.tetris_game.get_current_piece()
+        for row_idx, row in enumerate(current_piece.current_shape):
             for col_idx, cell in enumerate(row):
                 if not cell:
                     continue
-                x = self.tetris_game.current_piece.pos[0] + col_idx
-                y = self.tetris_game.current_piece.pos[1] + row_idx
+                x = current_piece.pos[0] + col_idx
+                y = current_piece.pos[1] + row_idx
                 if y >= self.settings.hide_first:
                     cell_pos = self._calculate_cell_position(x, y, pos)
-                    self._draw_cell(surface, cell_pos, self.tetris_game.current_piece.color)
+                    self._draw_cell(surface, cell_pos, current_piece.color)
 
     def _draw_cell(self, surface: Surface, pos: tuple[int, int], color: tuple[int, int, int] | None) -> None:
         draw_color = color if color else self.settings.empty_cell_color

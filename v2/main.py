@@ -8,12 +8,11 @@ from assets import DEFAULT_ASSETS_PATH
 import sys
 from audio import SoundEffectPlayer, SoundtrackPlayer
 from ui_elements import BlinkingLabel
-from soundtracks import ScoreManager, Soundtrack, JsonManager, SoundtrackManager
+from soundtracks import ScoreManager, JsonManager, SoundtrackManager
 
 
 SCREEN_DIMENSIONS: tuple[int, int] = (720, 480)
 screen_w, screen_h = SCREEN_DIMENSIONS
-
 
 USER_FILE: str = 'soundtracks.json'
 JSON_FILE_MANAGER: JsonManager = JsonManager(USER_FILE)
@@ -158,8 +157,6 @@ class TetrisGameScreen(UiScreen):
         self._time_label: TimeLabel | None = None
         self._piece_preview: PiecePreview | None = None
 
-        self._blinking_threshold: int = 100
-
         self._sx_player: SoundEffectPlayer = SoundEffectPlayer()
         self._soundtrack_player: SoundtrackPlayer = SoundtrackPlayer(SOUNDTRACK_MANAGER)
 
@@ -168,7 +165,6 @@ class TetrisGameScreen(UiScreen):
         return str(score).zfill(2)
 
     def on_enter(self) -> None:
-        self.controller.start()
         self._soundtrack_player.play_default()
 
         self._score_label: BlinkingLabel = BlinkingLabel(text='00', font_size=20)
@@ -192,9 +188,9 @@ class TetrisGameScreen(UiScreen):
         self.controller.handle_events(events)
         self.controller.tick()
 
-        if self.controller.score_change >= self._blinking_threshold:
-            self._score_label.blink()
-            self._sx_player.play_faah()
+        # if False:
+        #     self._score_label.blink()
+        #     self._sx_player.play_faah()
 
         self._score_label.set_text(self._format_score(self.controller.score))
 
@@ -202,7 +198,7 @@ class TetrisGameScreen(UiScreen):
         self._layout.render(surface)
 
     def next_screen(self) -> 'UiScreen | None':
-        if self.controller.tetris_snapshot.game_status == 'Lost':
+        if self.controller.is_lost:
             return GameOverScreen(self.controller.score,
                                   self._time_label.time_elapsed,
                                   self.level)
@@ -282,7 +278,7 @@ def mainloop(screen: pygame.Surface) -> None:
         current_screen.draw(screen)
         pygame.display.update()
 
-        clock.tick(60)
+        clock.tick(120)
 
     current_screen.on_exit()
 

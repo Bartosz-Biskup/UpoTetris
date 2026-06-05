@@ -38,7 +38,7 @@ class PiecePreview(UiElement):
     def draw(self, surface: Surface, pos: tuple[int, int]) -> None:
         self._frame.draw(surface, pos)
 
-        self._piece = self._tetris_game.snapshot.next_piece
+        self._piece = self._tetris_game.get_next_piece()
 
         shape = self._piece.current_shape
         step = self.style.cell_size + self.style.cell_offset

@@ -41,7 +41,7 @@ class BaseAudioPlayer:
         except error:
             return None
 
-    def _play(self, sound: mixer.Sound, loops: int = 1) -> None:
+    def _play(self, sound: mixer.Sound, loops: int = 0) -> None:
         sound.set_volume(self.volume)
         sound.play(loops=loops)
 
