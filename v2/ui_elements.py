@@ -2,10 +2,11 @@ from abc import abstractmethod, ABC
 from pygame import Surface
 import time
 import pygame
-from typing import Literal, Optional
+from typing import Literal, Optional, Callable, Any
 from pathlib import Path
 from dataclasses import dataclass
 from functools import lru_cache
+from colors import Color
 
 
 BASE_DIR = Path(__file__).parent.parent
@@ -70,6 +71,9 @@ class Layout:
 
             ox, oy = offsets[anchor]
             element.draw(surface, (x - ox, y - oy))
+
+    def clear(self) -> None:
+        self.elements = []
 
 
 class Label(UiElement):
@@ -197,6 +201,9 @@ class Frame(UiElement):
                              width=self.style.border_thickness,
                              border_radius=self.style.border_radius)
 
+    def clear_layout(self) -> None:
+        self._layout.clear()
+
 
 class Rect(UiElement):
     def __init__(self, size: tuple[int, int], color: tuple):
@@ -223,3 +230,63 @@ class Image(UiElement):
 
     def get_size(self) -> tuple[int, int]:
         return self._surface.get_size()
+
+
+class Button(UiElement):
+    def __init__(self,
+                 text: str,
+                 function: Callable[[], Any],
+                 text_color: Color,
+                 button_size: tuple[int, int] = (70, 30),
+                 border_color: Color = (255, 255, 255),
+                 border_color_hover: Color = (127, 127, 127),
+                 border_color_pressed: Color = (0, 127, 127)) -> None:
+        super().__init__()
+
+        self.function = function
+        self._text_color = text_color
+        self._button_size = button_size
+        self._border_color = border_color
+        self._border_color_hover = border_color_hover
+        self._border_color_pressed = border_color_pressed
+
+        self._current_state: Literal['none', 'press', 'hover'] = 'none'
+
+        self._label: Label | None = None
+        self._text = text
+
+        frame_style: FrameStyle = FrameStyle(fill=None,
+                                             border_color=self._border_color,
+                                             border_thickness=3,
+                                             border_radius=5)
+        self._frame: Frame = Frame(self._button_size, frame_style)
+        self._add_label_to_frame()
+
+    def _add_label_to_frame(self) -> None:
+        self._frame.add_widget(self._label,
+                               (self._button_size[0] // 2, self._button_size[1] // 2),
+                               'center')
+
+    @property
+    def text(self) -> str:
+        return self._text
+
+    @text.setter
+    def text(self, value: str) -> None:
+        self._label = Label(value, self._text_color)
+        self._frame.clear_layout()
+        self._add_label_to_frame()
+        self.text = value
+
+    def get_size(self) -> tuple[int, int]:
+        return self._button_size
+
+    def draw(self, surface: Surface, pos: tuple[int, int]) -> None:
+        self._tick()
+        self._frame.draw(surface, pos)
+
+    def _tick(self) -> None:
+        ...
+
+
+
