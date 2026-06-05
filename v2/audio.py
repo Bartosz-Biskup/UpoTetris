@@ -1,32 +1,24 @@
-from pygame import mixer
 from pathlib import Path
 from typing import Optional
+from pygame import mixer, error
+from soundtracks import SoundtrackManager, Soundtrack
 
 
+DEFAULT_MIXER_VOLUME: float = 0.4
 DEFAULT_SOUND_EFFECTS_PATH: Path = Path(__file__).parent.parent / "sound_effects"
 DEFAULT_SOUNDTRACK_PATH: Path = Path(__file__).parent.parent / "soundtracks"
 
 ACK_SX_PATH: Path = DEFAULT_SOUND_EFFECTS_PATH / "ack.mp3"
 FAAH_SX_PATH: Path = DEFAULT_SOUND_EFFECTS_PATH / "Faah sound effect.mp3"
 
-DEFAULT_MIXER_VOLUME: float = 0.3
 
-
-class SoundEffectPlayer:
-    def __init__(self, volume: float = DEFAULT_MIXER_VOLUME) -> None:
+class BaseAudioPlayer:
+    def __init__(self,
+                 volume: float = DEFAULT_MIXER_VOLUME) -> None:
         if not mixer.get_init():
             mixer.init()
 
-        self._ack: Optional[mixer.Sound] = self._load(ACK_SX_PATH)
-        self._faah: Optional[mixer.Sound] = self._load(FAAH_SX_PATH)
-
-        self.volume = volume
-
-    def play_ack(self) -> None:
-        self._play(self._ack)
-
-    def play_faah(self) -> None:
-        self._play(self._faah)
+        self._volume = volume
 
     @property
     def volume(self) -> float:
@@ -34,23 +26,78 @@ class SoundEffectPlayer:
 
     @volume.setter
     def volume(self, value: float) -> None:
-        if not 0.0 <= value <= 1.0:
-            raise ValueError(f"Volume must be between 0.0 and 1.0, got {value}")
+        if not 0 <= value <= 1:
+            raise ValueError('Invalid volume.')
+
         self._volume = value
-        for sound in (self._ack, self._faah):
-            if sound is not None:
-                sound.set_volume(value)
 
     @staticmethod
     def _load(path: Path) -> Optional[mixer.Sound]:
         if not path.exists():
-            print(f"[SoundEffectPlayer] Warning: sound file not found: {path}")
             return None
-        return mixer.Sound(path)
 
-    @staticmethod
-    def _play(sound: Optional[mixer.Sound]) -> None:
-        if sound is not None:
-            sound.play()
+        try:
+            return mixer.Sound(path)
+        except error:
+            return None
+
+    def _play(self, sound: mixer.Sound, loops: int = 1) -> None:
+        sound.set_volume(self.volume)
+        sound.play(loops=loops)
+
+
+class SoundEffectPlayer(BaseAudioPlayer):
+    def __init__(self) -> None:
+        super().__init__()
+
+        self._ack: Optional[mixer.Sound] = self._load(ACK_SX_PATH)
+        self._faah: Optional[mixer.Sound] = self._load(FAAH_SX_PATH)
+
+    def play_faah(self) -> None:
+        if self._faah is not None:
+            self._play(self._faah)
+
+    def play_ack(self) -> None:
+        if self._ack is not None:
+            self._play(self._ack)
+
+
+class SoundtrackPlayer(BaseAudioPlayer):
+    def __init__(self,
+                 soundtrack_manager: SoundtrackManager) -> None:
+        super().__init__()
+        self._soundtrack_mg = soundtrack_manager
+        self._current: Optional[mixer.Sound] = None
+
+    def _get_soundtrack_path(self, name: str) -> Path:
+        all_soundtracks: list[Soundtrack] = self._soundtrack_mg.get_all_soundtracks()
+        match: Optional[Soundtrack] = next((s for s in all_soundtracks if s.name == name), None)
+
+        if match is None:
+            raise ValueError('Soundtrack not found.')
+
+        return Path(match.path)
+
+    def play_default(self) -> None:
+        default_soundtrack: str = self._soundtrack_mg.get_default_soundtrack().name
+        self.play(default_soundtrack)
+
+    def play(self, soundtrack_name: str) -> None:
+        soundtrack_path: Path = DEFAULT_SOUNDTRACK_PATH / self._get_soundtrack_path(soundtrack_name)
+        sound: Optional[mixer.Sound] = self._load(soundtrack_path)
+
+        if sound is None:
+            raise ValueError('Path not found')
+
+        self.stop()
+        self._play(sound, loops=-1)
+        self._current = sound
+
+    def stop(self) -> None:
+        if self._current is not None:
+            self._current.stop()
+            self._current = None
+
+
 
 

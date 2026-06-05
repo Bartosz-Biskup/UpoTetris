@@ -5,7 +5,7 @@
       "name": "Polski OsamaSon",
       "path": "blueface.wav",
       "price": 5000,
-      "owned": false,
+      "owned": true,
       "rarity": "Rare"
     },
     {
@@ -93,11 +93,11 @@
       "name": "Zabralem ja do O",
       "path": "zabralem_ja_do_o.wav",
       "price": 15000,
-      "owned": false,
+      "owned": true,
       "rarity": "Legendary"
     }
   ],
-  "default-soundtrack": "Camelot",
-  "score": 17536,
-  "max-score": 6818
+  "default-soundtrack": "Polski OsamaSon",
+  "score": 31947,
+  "max-score": 10035
 }

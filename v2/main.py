@@ -6,7 +6,7 @@ from piece_preview import PiecePreview
 from cursorMenu import Menu
 from assets import DEFAULT_ASSETS_PATH
 import sys
-from audio import SoundEffectPlayer
+from audio import SoundEffectPlayer, SoundtrackPlayer
 from ui_elements import BlinkingLabel
 from soundtracks import ScoreManager, Soundtrack, JsonManager, SoundtrackManager
 
@@ -160,7 +160,8 @@ class TetrisGameScreen(UiScreen):
 
         self._blinking_threshold: int = 100
 
-        self.sx_player: SoundEffectPlayer = SoundEffectPlayer()
+        self._sx_player: SoundEffectPlayer = SoundEffectPlayer()
+        self._soundtrack_player: SoundtrackPlayer = SoundtrackPlayer(SOUNDTRACK_MANAGER)
 
     @staticmethod
     def _format_score(score: int) -> str:
@@ -168,19 +169,21 @@ class TetrisGameScreen(UiScreen):
 
     def on_enter(self) -> None:
         self.controller.start()
+        self._soundtrack_player.play_default()
 
         self._score_label: BlinkingLabel = BlinkingLabel(text='00', font_size=20)
         self._piece_preview: PiecePreview = PiecePreview((200, 150), self.controller.tetris_game)
         self._time_label: TimeLabel = TimeLabel(font_size=20)
 
-        self._layout.add_element(self.controller, (10, 10), 'top_left')
+        self._layout.add_element(self.controller, (10, screen_h // 2), 'middle_left')
         self._layout.add_element(self._score_label, (415, 180), 'bottom_left')
         self._layout.add_element(self._piece_preview, (515, 265), "center")
         self._layout.add_element(self._time_label, (560, 180), 'bottom_left')
 
     def on_exit(self) -> None:
-        self.sx_player.play_ack()
+        self._sx_player.play_ack()
         SCORE_MANAGER.add_score(self.controller.score)
+        self._soundtrack_player.stop()
 
     def tick(self, events: list[pygame.Event]) -> None:
         if self.controller.is_lost:
@@ -191,7 +194,7 @@ class TetrisGameScreen(UiScreen):
 
         if self.controller.score_change >= self._blinking_threshold:
             self._score_label.blink()
-            self.sx_player.play_faah()
+            self._sx_player.play_faah()
 
         self._score_label.set_text(self._format_score(self.controller.score))
 

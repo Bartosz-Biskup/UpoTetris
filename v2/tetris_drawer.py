@@ -16,7 +16,7 @@ class TetrisDrawerSettings:
     empty_cell_color: Color
 
 
-DEFAULT_SETTINGS: TetrisDrawerSettings = TetrisDrawerSettings(cell_size_px=25,
+DEFAULT_SETTINGS: TetrisDrawerSettings = TetrisDrawerSettings(cell_size_px=20,
                                                               cell_offset=3,
                                                               hide_first=0,
                                                               grid_bg_color=(0, 0, 0),
