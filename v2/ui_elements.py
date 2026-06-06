@@ -220,7 +220,7 @@ class Rect(UiElement):
 
 
 class Image(UiElement):
-    def __init__(self, path: str | Path, scale: float = 1.0) -> None:
+    def __init__(self, path: Path, scale: float = 1.0) -> None:
         surface = pygame.image.load(path).convert_alpha()
         w, h = surface.get_size()
         self._surface = pygame.transform.scale(surface, (max(1, int(w * scale)), max(1, int(h * scale))))

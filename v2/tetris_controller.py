@@ -1,7 +1,7 @@
 import pygame
-from tetris_game import TetrisGame
 from v2.tetris_drawer import TetrisDrawer, DEFAULT_SETTINGS
-from tetris_levels import levels, TetrisGameSettings
+from tetris_levels import levels
+from v2.tetris_game import TetrisGameSettings, TetrisGame
 from ui_elements import UiElement
 
 

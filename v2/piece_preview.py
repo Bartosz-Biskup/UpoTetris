@@ -2,9 +2,9 @@ import pygame
 from ui_elements import UiElement, Frame, FrameStyle
 from pygame import Surface
 from typing import Optional
-from pieces import Piece
+from tetris_pieces import Piece
 from dataclasses import dataclass
-from tetris_game import TetrisGame
+from v2.tetris_game import TetrisGame
 
 
 @dataclass

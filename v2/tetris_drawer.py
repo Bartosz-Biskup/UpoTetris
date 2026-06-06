@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from tetris_game import TetrisGrid
+from tetris_game_engine import TetrisGrid
 import pygame
 from pygame import Surface
 from colors import Color
-from tetris_game import TetrisGame
+from v2.tetris_game import TetrisGame
 from ui_elements import UiElement
 
 

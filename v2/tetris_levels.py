@@ -1,8 +1,7 @@
-from colors import all_colors, Color
-from pieces import Piece, pieces,PieceDefinition
-from dataclasses import dataclass
-from tetris_game import TetrisExtension, TetrisGameSettings
-
+from colors import all_colors
+from tetris_pieces import pieces
+from tetris_game_engine import TetrisExtension
+from v2.tetris_game import TetrisGameSettings
 
 DEFAULT_GRID_SIZE: tuple[int, int] = (14, 20)
 

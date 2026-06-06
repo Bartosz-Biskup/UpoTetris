@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional
 from pygame import mixer, error
-from soundtracks import SoundtrackManager, Soundtrack
+from user_data_manager import SoundtrackManager, Soundtrack
 
 
 DEFAULT_MIXER_VOLUME: float = 0.4

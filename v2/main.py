@@ -6,15 +6,15 @@ from piece_preview import PiecePreview
 from cursorMenu import Menu
 from assets import DEFAULT_ASSETS_PATH
 import sys
-from audio import SoundEffectPlayer, SoundtrackPlayer
+from audio_players import SoundEffectPlayer, SoundtrackPlayer
 from ui_elements import BlinkingLabel
-from soundtracks import ScoreManager, JsonManager, SoundtrackManager
+from user_data_manager import ScoreManager, JsonManager, SoundtrackManager
 
 
 SCREEN_DIMENSIONS: tuple[int, int] = (720, 480)
 screen_w, screen_h = SCREEN_DIMENSIONS
 
-USER_FILE: str = 'soundtracks.json'
+USER_FILE: str = 'user_data.json'
 JSON_FILE_MANAGER: JsonManager = JsonManager(USER_FILE)
 SCORE_MANAGER: ScoreManager = ScoreManager(JSON_FILE_MANAGER)
 SOUNDTRACK_MANAGER: SoundtrackManager = SoundtrackManager(JSON_FILE_MANAGER, SCORE_MANAGER)
