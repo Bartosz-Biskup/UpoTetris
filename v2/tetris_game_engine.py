@@ -3,6 +3,29 @@ from tetris_grid import TetrisGrid
 from tetris_pieces import PieceFactory
 
 
+def is_valid_position(grid: TetrisGrid, piece: Piece) -> bool:
+    for row_idx, row in enumerate(piece.current_shape):
+        for col_idx, cell in enumerate(row):
+            if not cell:
+                continue
+
+            x = piece.pos[0] + col_idx
+            y = piece.pos[1] + row_idx
+
+            if y < 0:
+                if x < 0 or x >= grid.size_x:
+                    return False
+                continue
+
+            if not grid.valid_cell((x, y)):
+                return False
+
+            if grid.get_cell((x, y)) is not None:
+                return False
+
+    return True
+
+
 class TetrisExtension:
     """
     TetrisExtension can be passed and is called directly by TetrisGameEngine, that way we can directly influence some
@@ -91,30 +114,13 @@ class TetrisGameEngine:
         self.next_piece: Piece = self._piece_factory.spawn()
 
     def _is_valid(self, piece: Piece) -> bool:
-        for row_idx, row in enumerate(piece.current_shape):
-            for col_idx, cell in enumerate(row):
-                if not cell:
-                    continue
-
-                x = piece.pos[0] + col_idx
-                y = piece.pos[1] + row_idx
-
-                if y < 0:
-                    if x < 0 or x >= self.grid.size_x:
-                        return False
-                    continue
-
-                if not self.grid.valid_cell((x, y)):
-                    return False
-
-                if self.grid.get_cell((x, y)) is not None:
-                    return False
+        piece_valid: bool = is_valid_position(self.grid, piece)
 
         for extension in self.level_extensions:
             if not extension.is_valid(self.grid, self.game_on, self.current_piece, self.next_piece):
                 return False
 
-        return True
+        return piece_valid
 
     def _lock(self) -> None:
         for extension in self.level_extensions:

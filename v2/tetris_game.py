@@ -56,8 +56,11 @@ class ScoreKeeper(TetrisExtension):
                   current_piece: Piece,
                   next_piece: Piece,
                   cleared: int) -> None:
-        self._score += self.score_added_per_cleared_line * cleared
+        self._score += self.score_added_per_cleared_line * self._clear_lines_combo_function(cleared)
         self._lines_cleared_last_tick = cleared
+
+    def _clear_lines_combo_function(self, cleared_lines: int) -> int:
+        return int(1.5 ** (cleared_lines - 1))
 
     def get_lines_cleared_last_tick(self) -> int:
         return self._lines_cleared_last_tick
