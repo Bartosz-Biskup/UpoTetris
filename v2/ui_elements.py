@@ -50,7 +50,8 @@ class Layout:
             "anchor": anchor
         })
 
-    def render(self, surface: Surface):
+    def render(self, surface: Surface, offset: tuple[int, int] = (0, 0)):
+        ox, oy = offset
         for item in self.elements:
             element = item["element"]
             x, y = item["position"]
@@ -58,19 +59,19 @@ class Layout:
             w, h = element.get_size()
 
             offsets = {
-                "center":        (w // 2,  h // 2),
-                "top_left":      (0,       0),
-                "top_center":    (w // 2,  0),
-                "top_right":     (w,       0),
-                "middle_left":   (0,       h // 2),
-                "middle_right":  (w,       h // 2),
-                "bottom_left":   (0,       h),
-                "bottom_center": (w // 2,  h),
-                "bottom_right":  (w,       h),
+                "center": (w // 2, h // 2),
+                "top_left": (0, 0),
+                "top_center": (w // 2, 0),
+                "top_right": (w, 0),
+                "middle_left": (0, h // 2),
+                "middle_right": (w, h // 2),
+                "bottom_left": (0, h),
+                "bottom_center": (w // 2, h),
+                "bottom_right": (w, h),
             }
 
-            ox, oy = offsets[anchor]
-            element.draw(surface, (x - ox, y - oy))
+            ax, ay = offsets[anchor]
+            element.draw(surface, (ox + x - ax, oy + y - ay))
 
     def clear(self) -> None:
         self.elements = []
@@ -191,13 +192,11 @@ class Frame(UiElement):
 
         old_clip = surface.get_clip()
         surface.set_clip(rect)
-        self._layout.render(surface)          # Layout already knows how to draw everything
+        self._layout.render(surface, offset=pos)
         surface.set_clip(old_clip)
 
         if self.style.border_color:
-            pygame.draw.rect(surface,
-                             self.style.border_color,
-                             rect,
+            pygame.draw.rect(surface, self.style.border_color, rect,
                              width=self.style.border_thickness,
                              border_radius=self.style.border_radius)
 
@@ -233,39 +232,50 @@ class Image(UiElement):
 
 
 class Button(UiElement):
-    def __init__(self,
-                 text: str,
-                 function: Callable[[], Any],
-                 text_color: Color,
-                 button_size: tuple[int, int] = (70, 30),
-                 border_color: Color = (255, 255, 255),
-                 border_color_hover: Color = (127, 127, 127),
-                 border_color_pressed: Color = (0, 127, 127)) -> None:
+    def __init__(
+        self,
+        text: str,
+        function: Callable[[], Any],
+        text_color: Color,
+        button_size: tuple[int, int] = (70, 30),
+        border_color: Color = (255, 255, 255),
+        border_color_hover: Color = (127, 127, 127),
+        border_color_pressed: Color = (0, 127, 127),
+    ) -> None:
         super().__init__()
 
         self.function = function
+
+        self._text = text
         self._text_color = text_color
         self._button_size = button_size
+
         self._border_color = border_color
         self._border_color_hover = border_color_hover
         self._border_color_pressed = border_color_pressed
 
-        self._current_state: Literal['none', 'press', 'hover'] = 'none'
+        self._state: Literal["none", "hover", "press"] = "none"
 
-        self._label: Label | None = None
-        self._text = text
+        self._label = Label(text, text_color)
 
-        frame_style: FrameStyle = FrameStyle(fill=None,
-                                             border_color=self._border_color,
-                                             border_thickness=3,
-                                             border_radius=5)
-        self._frame: Frame = Frame(self._button_size, frame_style)
-        self._add_label_to_frame()
+        self._frame = Frame(
+            self._button_size,
+            FrameStyle(
+                fill=None,
+                border_color=self._border_color,
+                border_thickness=3,
+                border_radius=5,
+            ),
+        )
 
-    def _add_label_to_frame(self) -> None:
-        self._frame.add_widget(self._label,
-                               (self._button_size[0] // 2, self._button_size[1] // 2),
-                               'center')
+        self._frame.add_widget(
+            self._label,
+            (self._button_size[0] // 2, self._button_size[1] // 2),
+            "center",
+        )
+
+        self._last_mouse_down = False
+        self._last_pos = (0, 0)
 
     @property
     def text(self) -> str:
@@ -273,20 +283,135 @@ class Button(UiElement):
 
     @text.setter
     def text(self, value: str) -> None:
+        self._text = value
         self._label = Label(value, self._text_color)
+
         self._frame.clear_layout()
-        self._add_label_to_frame()
-        self.text = value
+        self._frame.add_widget(
+            self._label,
+            (self._button_size[0] // 2, self._button_size[1] // 2),
+            "center",
+        )
 
     def get_size(self) -> tuple[int, int]:
         return self._button_size
 
     def draw(self, surface: Surface, pos: tuple[int, int]) -> None:
-        self._tick()
+        self._last_pos = pos
+        self._update()
         self._frame.draw(surface, pos)
 
-    def _tick(self) -> None:
-        ...
+    def _update(self) -> None:
+        mx, my = pygame.mouse.get_pos()
+        mouse_down = pygame.mouse.get_pressed()[0]
 
+        x, y = self._last_pos
+        w, h = self._button_size
+
+        hovered = (x <= mx <= x + w and y <= my <= y + h)
+
+        # STATE
+        if hovered:
+            self._state = "hover"
+
+            if mouse_down:
+                self._state = "press"
+
+            # CLICK
+            if hovered and mouse_down and not self._last_mouse_down:
+                self.function()
+
+        else:
+            self._state = "none"
+
+        self._last_mouse_down = mouse_down
+
+
+class Page:
+    def __init__(self, size: tuple[int, int]):
+        self._frame = Frame(size)
+
+    def add_widget(self, element: UiElement, position: tuple[int, int], anchor: Anchor = "top_left") -> None:
+        self._frame.add_widget(element, position, anchor)
+
+    def draw(self, surface, pos: tuple[int, int] = (0, 0)):
+        self._frame.draw(surface, pos)
+
+    @property
+    def frame(self):
+        return self._frame
+
+
+class PageContainer(UiElement):
+    def __init__(self, size: tuple[int, int], show_navigation: bool = True):
+        self._size = size
+        self._show_navigation = show_navigation
+
+        self.pages: list[Page] = []
+        self._current_page = 0
+
+        self._back_btn = Button(
+            "BACK",
+            self.prev_page,
+            (255, 255, 255)
+        )
+
+        self._next_btn = Button(
+            "NEXT",
+            self.next_page,
+            (255, 255, 255)
+        )
+
+        self._page_label = Label("1/1")
+
+    def _update_label(self):
+        count = max(1, len(self.pages))
+
+        self._page_label.set_text(
+            f"{self._current_page + 1}/{count}"
+        )
+
+    def create_page(self) -> Page:
+        page = Page(self._size)
+
+        self.pages.append(page)
+
+        self._update_label()
+
+        return page
+
+    def add_widget(self, page_index: int, element: UiElement, position: tuple[int, int], anchor: Anchor = "top_left"):
+        self.pages[page_index].add_widget(element, position, anchor)
+
+    def next_page(self):
+        if self._current_page < len(self.pages) - 1:
+            self._current_page += 1
+
+        self._update_label()
+
+    def prev_page(self):
+        if self._current_page > 0:
+            self._current_page -= 1
+
+        self._update_label()
+
+    def draw(self, surface, pos: tuple[int, int]):
+        if not self.pages:
+            return
+
+        self.pages[self._current_page].draw(surface, pos)
+
+        if self._show_navigation:
+
+            if self._current_page > 0:
+                self._back_btn.draw(surface, (230, 425))
+
+            if self._current_page < len(self.pages) - 1:
+                self._next_btn.draw(surface, (415, 425))
+
+            self._page_label.draw(surface, (340, 432))
+
+    def get_size(self) -> tuple[int, int]:
+        return self._size
 
 

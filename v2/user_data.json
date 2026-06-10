@@ -13,7 +13,7 @@
       "name": "Rizz",
       "path": "rizz.wav",
       "price": 0,
-      "owned": false,
+      "owned": true,
       "rarity": "Common"
     },
     {
@@ -61,7 +61,7 @@
       "name": "Kuleczki",
       "path": "kuleczki.wav",
       "price": 15000,
-      "owned": false,
+      "owned": true,
       "rarity": "Epic"
     },
     {
@@ -97,7 +97,7 @@
       "rarity": "Legendary"
     }
   ],
-  "default-soundtrack": "Zabralem ja do O",
-  "score": 83900,
+  "default-soundtrack": "Kuleczki",
+  "score": 76044,
   "max-score": 11397
 }

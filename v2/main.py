@@ -1,12 +1,12 @@
 from abc import abstractmethod, ABC
 import pygame
 from tetris_controller import TetrisController
-from ui_elements import Label, TimeLabel, Layout, Image
+from ui_elements import Label, TimeLabel, Layout, Image, Page, PageContainer, Button
 from piece_preview import PiecePreview
 from cursorMenu import Menu
 from assets import DEFAULT_ASSETS_PATH
 import sys
-from audio_players import SoundEffectPlayer, SoundtrackPlayer
+from audio_players import SoundEffectPlayer, SoundtrackPlayer, Soundtrack
 from ui_elements import BlinkingLabel
 from user_data_manager import ScoreManager, JsonManager, SoundtrackManager
 
@@ -132,8 +132,7 @@ class MainMenuScreen(UiScreen):
                     case 0:
                         self._next = ChooseLevelScreen()
                     case 1:
-                        # self._next = MarketScreen()
-                        ...
+                        self._next = MarketScreen()
                     case 2:
                         sys.exit()
 
@@ -249,6 +248,105 @@ class ChooseLevelScreen(UiScreen):
     def next_screen(self) -> 'UiScreen | None':
         return self._next
 
+
+class MarketScreen(UiScreen):
+    ITEMS_PER_PAGE = 4
+
+    START_X = 0
+    START_Y = 20
+    ITEM_H = 100
+
+    def __init__(self):
+        self._songs: list[Soundtrack] = []
+        self._equipped_name: str | None = None
+
+        self._container = PageContainer(size=(screen_w, screen_h))
+        self._coins_label = Label("", (255, 255, 0))
+
+        self._exit_btn = Button("EXIT", self._exit, (255, 80, 80))
+
+        self._next = None
+
+    def on_enter(self):
+        self._reload_data()
+        self._build_ui()
+
+    def on_exit(self):
+        pass
+
+    def _reload_data(self):
+        self._songs = SOUNDTRACK_MANAGER.get_all_soundtracks()
+        self._equipped_name = SOUNDTRACK_MANAGER.get_default_soundtrack().name
+        self._coins_label.set_text(f"Coins: {SCORE_MANAGER.get_score()}")
+
+    def _build_ui(self):
+        self._container.pages.clear()
+
+        page = self._container.create_page()
+        index = 0
+
+        for song in self._songs:
+            if index >= self.ITEMS_PER_PAGE:
+                page = self._container.create_page()
+                index = 0
+
+            self._add_song(page, song, index)
+            index += 1
+
+    def _add_song(self, page, song, index):
+        base_y = self.START_Y + index * self.ITEM_H
+        page.add_widget(Label(song.name), (150, base_y + 20), "center")
+        page.add_widget(Label(song.author, (150, 150, 150)), (150, base_y + 45), "center")
+        page.add_widget(Label(str(song.price), (255, 255, 0)), (150, base_y + 70), "center")
+        page.add_widget(self._make_buy_button(song), (355, base_y + 25), "center")
+        page.add_widget(self._make_equip_button(song), (355, base_y + 65), "center")
+
+    def _make_buy_button(self, song: Soundtrack) -> Button:
+        if song.owned:
+            return Button("BOUGHT", lambda: None, (255, 80, 80))
+
+        def buy():
+            if SCORE_MANAGER.get_score() < song.price:
+                return
+
+            SOUNDTRACK_MANAGER.buy_soundtrack(song.name)
+
+            self._reload_data()
+            self._build_ui()
+
+        return Button("BUY", buy, (0, 255, 0))
+
+    def _make_equip_button(self, song: Soundtrack) -> Button:
+        if song.name == self._equipped_name:
+            return Button("EQUIPPED", lambda: None, (0, 255, 0))
+
+        def equip():
+            if not song.owned:
+                return
+
+            SOUNDTRACK_MANAGER.set_default_soundtrack(song.name)
+
+            self._reload_data()
+            self._build_ui()
+
+        return Button("EQUIP", equip, (200, 200, 200))
+
+    def _exit(self):
+        self._next = MainMenuScreen()
+
+    def tick(self, events):
+        ...
+
+    def draw(self, surface):
+        surface.fill((20, 20, 20))
+
+        self._container.draw(surface, (150, 0))
+
+        self._exit_btn.draw(surface, (20, 20))
+        self._coins_label.draw(surface, (screen_w - 150, 10))
+
+    def next_screen(self):
+        return self._next
 
 def mainloop(screen: pygame.Surface) -> None:
     clock = pygame.time.Clock()
